@@ -11,7 +11,7 @@ import time
 re="\033[1;31m"
 gr="\033[1;32m"
 cy="\033[1;36m"
-SLEEP_TIME = 30
+SLEEP_TIME = 100
 
 class main():
 
@@ -49,6 +49,9 @@ class main():
         os.system('clear')
         main.banner()
         input_file = sys.argv[1]
+        sleep_time = sys.argv[2]
+        if not sleep_time:
+            sleep_time = SLEEP_TIME
         users = []
         with open(input_file, encoding='UTF-8') as f:
             rows = csv.reader(f,delimiter=",",lineterminator="\n")
@@ -79,8 +82,8 @@ class main():
             try:
                 print(gr+"[+] Sending Message to:", user['name'])
                 client.send_message(receiver, message.format(user['name']))
-                print(gr+"[+] Waiting {} seconds".format(SLEEP_TIME))
-                time.sleep(1)
+                print(gr+"[+] Waiting {} seconds".format(sleep_time))
+                time.sleep(sleep_time)
             except PeerFloodError:
                 print(re+"[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time.")
                 client.disconnect()
