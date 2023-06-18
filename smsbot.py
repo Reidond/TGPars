@@ -93,6 +93,7 @@ class main:
         mode = int(input(GREEN + "Input : " + RED))
 
         message = input(GREEN + "[+] Enter Your Message : " + RED)
+        usersToRemove = []
 
         for user in users:
             if mode == 2:
@@ -133,6 +134,8 @@ class main:
                 client.delete_dialog(receiver, revoke=False)
                 print(GREEN + "[+] Removing dialog of receiver")
 
+                usersToRemove.append(user["id"])
+
                 print(GREEN + "[+] Waiting {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
             except PeerFloodError:
@@ -147,6 +150,39 @@ class main:
                 print(RED + "[!] Trying to continue...")
                 continue
         client.disconnect()
+
+        if len(usersToRemove) > 0:
+            c = set(usersToRemove)
+            for i in reversed(range(len(users))):
+                if users[i]["id"] in c:
+                    del users[i]
+
+            print(GREEN + "[+] Removing users In members.csv...")
+            time.sleep(1)
+            with open("members.csv", "w", encoding="UTF-8") as f:
+                writer = csv.writer(f, delimiter=",", lineterminator="\n")
+                writer.writerow(
+                    [
+                        "username",
+                        "user id",
+                        "access hash",
+                        "name",
+                        "group",
+                        "group id",
+                    ]
+                )
+                for user in users:
+                    writer.writerow(
+                        [
+                            user["username"],
+                            user["id"],
+                            user["access_hash"],
+                            user["name"],
+                            user["group"],
+                            user["group_id"],
+                        ]
+                    )
+
         sys.stdout.write(RESET)
         print("Done. Message sent to all users.")
 
