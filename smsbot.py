@@ -80,8 +80,10 @@ class main:
                 user["id"] = int(row[1])
                 user["access_hash"] = int(row[2])
                 user["name"] = row[3]
+                user["group"] = row[4]
+                user["group_id"] = row[5]
                 users.append(user)
-        print(GREEN + "[1] send sms by user ID\n[2] send sms by username ")
+        print(GREEN + "[1] send sms by user ID\n[2] send sms by username\n[3] send sms by group ")
         mode = int(input(GREEN + "Input : " + RED))
 
         message = input(GREEN + "[+] Enter Your Message : " + RED)
@@ -93,6 +95,8 @@ class main:
                 receiver = client.get_input_entity(user["username"])
             elif mode == 1:
                 receiver = InputPeerUser(user["id"], user["access_hash"])
+            elif mode == 3:
+                receiver = client.get_entity(user["group"])
             else:
                 print(RED + "[!] Invalid Mode. Exiting.")
                 client.disconnect()
