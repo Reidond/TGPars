@@ -1,6 +1,7 @@
 from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetDialogsRequest
 from telethon.tl.types import InputPeerEmpty
+from telethon.errors.rpcerrorlist import SessionPasswordNeededError
 import os, sys
 import configparser
 import csv
@@ -43,7 +44,10 @@ if not client.is_user_authorized():
     client.send_code_request(phone)
     os.system("clear")
     banner()
-    client.sign_in(phone, input(gr + "[+] Enter the code: " + re))
+    try:
+        client.sign_in(phone, input(gr + "[+] Enter the code: " + re))
+    except SessionPasswordNeededError:
+        client.sign_in(password=input(gr + "[+] Enter 2FA password: " + re))
 
 os.system("clear")
 banner()
