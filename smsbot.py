@@ -66,7 +66,10 @@ class main:
         os.system("clear")
         main.banner()
         input_file = sys.argv[1]
-        sleep_time = sys.argv[2]
+        try:
+            sleep_time = sys.argv[2]
+        except:
+            sleep_time = None
         if not sleep_time:
             sleep_time = SLEEP_TIME
         sleep_time = int(sleep_time)
