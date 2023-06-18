@@ -130,6 +130,9 @@ class main:
                     client.send_file(receiver, matched_url, caption=caption)
                     print(GREEN + "[+] Sending file to:", user["name"])
 
+                client.delete_dialog(receiver, revoke=False)
+                print(GREEN + "[+] Removing dialog of receiver")
+
                 print(GREEN + "[+] Waiting {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
             except PeerFloodError:
