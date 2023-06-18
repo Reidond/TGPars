@@ -8,21 +8,32 @@ import os, sys
 import csv
 import random
 import time
+import re
 
-re = "\033[1;31m"
-gr = "\033[1;32m"
-cy = "\033[1;36m"
+RED = "\033[1;31m"
+GREEN = "\033[1;32m"
+CYAN = "\033[1;36m"
 RESET = "\033[0;0m"
 SLEEP_TIME = 100
+
+
+import re
+
+
+def parse_text(text):
+    pattern = r'\[file="yes"\]\((.*?)\)'
+    urls = re.findall(pattern, text)
+    parsed_text = re.sub(pattern + r"\s*", "", text)
+    return parsed_text, urls
 
 
 class main:
     def banner():
         print(
             f"""
-    {re}╔╦╗{cy}┌─┐┌─┐┌─┐┌─┐┬─┐{re}╔═╗
-    {re} ║ {cy}├─┐├┤ ├─┘├─┤├┬┘{re}╚═╗
-    {re} ╩ {cy}└─┘└─┘┴  ┴ ┴┴└─{re}╚═╝
+    {RED}╔╦╗{CYAN}┌─┐┌─┐┌─┐┌─┐┬─┐{RED}╔═╗
+    {RED} ║ {CYAN}├─┐├┤ ├─┘├─┤├┬┘{RED}╚═╗
+    {RED} ╩ {CYAN}└─┘└─┘┴  ┴ ┴┴└─{RED}╚═╝
     by https://github.com/elizhabs
             """
         )
@@ -37,7 +48,7 @@ class main:
         except KeyError:
             os.system("clear")
             main.banner()
-            print(re + "[!] run python3 setup.py first !!\n")
+            print(RED + "[!] run python3 setup.py first !!\n")
             sys.exit(1)
 
         client = TelegramClient(phone, api_id, api_hash)
@@ -48,9 +59,9 @@ class main:
             os.system("clear")
             main.banner()
             try:
-                client.sign_in(phone, input(gr + "[+] Enter the code: " + re))
+                client.sign_in(phone, input(GREEN + "[+] Enter the code: " + RED))
             except SessionPasswordNeededError:
-                client.sign_in(password=input(gr + "[+] Enter 2FA password: " + re))
+                client.sign_in(password=input(GREEN + "[+] Enter 2FA password: " + RED))
 
         os.system("clear")
         main.banner()
@@ -70,10 +81,10 @@ class main:
                 user["access_hash"] = int(row[2])
                 user["name"] = row[3]
                 users.append(user)
-        print(gr + "[1] send sms by user ID\n[2] send sms by username ")
-        mode = int(input(gr + "Input : " + re))
+        print(GREEN + "[1] send sms by user ID\n[2] send sms by username ")
+        mode = int(input(GREEN + "Input : " + RED))
 
-        message = input(gr + "[+] Enter Your Message : " + re)
+        message = input(GREEN + "[+] Enter Your Message : " + RED)
 
         for user in users:
             if mode == 2:
@@ -83,26 +94,42 @@ class main:
             elif mode == 1:
                 receiver = InputPeerUser(user["id"], user["access_hash"])
             else:
-                print(re + "[!] Invalid Mode. Exiting.")
+                print(RED + "[!] Invalid Mode. Exiting.")
                 client.disconnect()
                 sys.exit()
             try:
-                print(gr + "[+] Sending Message to:", user["name"])
-                client.send_message(
-                    receiver, message.replace("\\n", "\n").format(user["name"])
-                )
-                print(gr + "[+] Waiting {} seconds".format(sleep_time))
+                print(GREEN + "[+] Sending Message to:", user["name"])
+                message, matched_urls = parse_text(message)
+                message = message.replace("\\n", "\n").format(user["name"]).strip()
+                if len(matched_urls) == 0 or len(matched_urls) != 1:
+                    client.send_message(receiver, message)
+
+                for matched_url in matched_urls:
+                    if not matched_url.startswith("http") or not matched_url.startswith(
+                        "https"
+                    ):
+                        file = os.path.abspath(matched_url)
+                        if not os.path.exists(file):
+                            continue
+                        matched_url = file
+                    caption = ""
+                    if len(matched_urls) == 1:
+                        caption = message
+                    client.send_file(receiver, matched_url, caption=caption)
+                    print(GREEN + "[+] Sending file to:", user["name"])
+
+                print(GREEN + "[+] Waiting {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
             except PeerFloodError:
                 print(
-                    re
+                    RED
                     + "[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time."
                 )
                 client.disconnect()
                 sys.exit()
             except Exception as e:
-                print(re + "[!] Error:", e)
-                print(re + "[!] Trying to continue...")
+                print(RED + "[!] Error:", e)
+                print(RED + "[!] Trying to continue...")
                 continue
         client.disconnect()
         sys.stdout.write(RESET)
