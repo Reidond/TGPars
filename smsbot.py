@@ -86,7 +86,10 @@ class main:
                 user["group"] = row[4]
                 user["group_id"] = row[5]
                 users.append(user)
-        print(GREEN + "[1] send sms by user ID\n[2] send sms by username\n[3] send sms by group ")
+        print(
+            GREEN
+            + "[1] send sms by user ID\n[2] send sms by username\n[3] send sms by group "
+        )
         mode = int(input(GREEN + "Input : " + RED))
 
         message = input(GREEN + "[+] Enter Your Message : " + RED)
@@ -106,10 +109,12 @@ class main:
                 sys.exit()
             try:
                 print(GREEN + "[+] Sending Message to:", user["name"])
-                message, matched_urls = parse_text(message)
-                message = message.replace("\\n", "\n").format(user["name"]).strip()
+                messageWithoutUrls, matched_urls = parse_text(message)
+                messageWithEscapedUnicode = (
+                    messageWithoutUrls.replace("\\n", "\n").format(user["name"]).strip()
+                )
                 if len(matched_urls) == 0 or len(matched_urls) != 1:
-                    client.send_message(receiver, message)
+                    client.send_message(receiver, messageWithEscapedUnicode)
 
                 for matched_url in matched_urls:
                     if not matched_url.startswith("http") or not matched_url.startswith(
@@ -121,7 +126,7 @@ class main:
                         matched_url = file
                     caption = ""
                     if len(matched_urls) == 1:
-                        caption = message
+                        caption = messageWithEscapedUnicode
                     client.send_file(receiver, matched_url, caption=caption)
                     print(GREEN + "[+] Sending file to:", user["name"])
 
