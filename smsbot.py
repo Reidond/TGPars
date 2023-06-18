@@ -2,6 +2,7 @@
 from telethon.sync import TelegramClient
 from telethon.tl.types import InputPeerUser
 from telethon.errors.rpcerrorlist import PeerFloodError
+from telethon.errors import SessionPasswordNeededError
 import configparser
 import os, sys
 import csv
@@ -46,7 +47,10 @@ class main:
             client.send_code_request(phone)
             os.system("clear")
             main.banner()
-            client.sign_in(phone, input(gr + "[+] Enter the code: " + re))
+            try:
+                client.sign_in(phone, input(gr + "[+] Enter the code: " + re))
+            except SessionPasswordNeededError:
+                client.sign_in(password=input(gr + "[+] Enter 2FA password: " + re))
 
         os.system("clear")
         main.banner()
@@ -54,6 +58,7 @@ class main:
         sleep_time = sys.argv[2]
         if not sleep_time:
             sleep_time = SLEEP_TIME
+        sleep_time = int(sleep_time)
         users = []
         with open(input_file, encoding="UTF-8") as f:
             rows = csv.reader(f, delimiter=",", lineterminator="\n")
@@ -83,7 +88,9 @@ class main:
                 sys.exit()
             try:
                 print(gr + "[+] Sending Message to:", user["name"])
-                client.send_message(receiver, message.format(user["name"]))
+                client.send_message(
+                    receiver, message.replace("\\n", "\n").format(user["name"])
+                )
                 print(gr + "[+] Waiting {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
             except PeerFloodError:
