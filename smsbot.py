@@ -26,6 +26,38 @@ def parse_text(text):
     parsed_text = re.sub(pattern + r"\s*", "", text)
     return parsed_text, urls
 
+def write_file(users, usersToRemove):
+    c = set(usersToRemove)
+    for i in reversed(range(len(users))):
+        if users[i]["id"] in c:
+            del users[i]
+
+    print(GREEN + "[+] Removing users In members.csv...")
+    time.sleep(1)
+    with open("members.csv", "w", encoding="UTF-8") as f:
+        writer = csv.writer(f, delimiter=",", lineterminator="\n")
+        writer.writerow(
+            [
+                "username",
+                "user id",
+                "access hash",
+                "name",
+                "group",
+                "group id",
+            ]
+        )
+        for user in users:
+            writer.writerow(
+                [
+                    user["username"],
+                    user["id"],
+                    user["access_hash"],
+                    user["name"],
+                    user["group"],
+                    user["group_id"],
+                ]
+            )
+
 
 class main:
     def banner():
@@ -143,6 +175,8 @@ class main:
                     RED
                     + "[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time."
                 )
+                if len(usersToRemove) > 0:
+                    write_file(users, usersToRemove)
                 client.disconnect()
                 sys.exit()
             except Exception as e:
@@ -152,36 +186,7 @@ class main:
         client.disconnect()
 
         if len(usersToRemove) > 0:
-            c = set(usersToRemove)
-            for i in reversed(range(len(users))):
-                if users[i]["id"] in c:
-                    del users[i]
-
-            print(GREEN + "[+] Removing users In members.csv...")
-            time.sleep(1)
-            with open("members.csv", "w", encoding="UTF-8") as f:
-                writer = csv.writer(f, delimiter=",", lineterminator="\n")
-                writer.writerow(
-                    [
-                        "username",
-                        "user id",
-                        "access hash",
-                        "name",
-                        "group",
-                        "group id",
-                    ]
-                )
-                for user in users:
-                    writer.writerow(
-                        [
-                            user["username"],
-                            user["id"],
-                            user["access_hash"],
-                            user["name"],
-                            user["group"],
-                            user["group_id"],
-                        ]
-                    )
+            write_file(users, usersToRemove)
 
         sys.stdout.write(RESET)
         print("Done. Message sent to all users.")
